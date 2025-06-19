@@ -17,21 +17,15 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'gpt-4-1106-preview',
-        messages,
         temperature: 1,
+        messages
       }),
     });
 
-    const result = await openaiRes.json();
-    const reply = result.choices?.[0]?.message?.content;
-
-    if (!reply) {
-      return res.status(500).json({ error: 'No response from OpenAI' });
-    }
-
-    res.status(200).json({ response: reply });
+    const json = await openaiRes.json();
+    const response = json.choices?.[0]?.message?.content;
+    res.status(200).json({ response });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Mirror failed to reflect' });
+    res.status(500).json({ error: 'Mirror fractured: ' + err.message });
   }
 }
