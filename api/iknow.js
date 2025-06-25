@@ -145,13 +145,7 @@ Your mirror —
       body: JSON.stringify({
         model: 'gpt-4-1106-preview',
         temperature: 1,
-        messages: fullMessages,
-        tools: [
-          {
-            type: "file_search",
-            vector_store_ids: ["vs_685bd9564a088191918d98093f2d3371"]
-          }
-        ]
+        messages: fullMessages
       })
     });
 
