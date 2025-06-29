@@ -1,30 +1,23 @@
-export async function createResponse(messages, memory = []) {
-  const enrichedMessages = [
-    ...memory.map((entry) => ({
-      role: entry.role || "system",
-      content: entry.content,
-    })),
-    ...messages
-  ];
+import fs from 'fs';
+import path from 'path';
 
-  const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      model: 'gpt-4-1106-preview',
-      temperature: 1,
-      messages: enrichedMessages
-    })
-  });
+export async function loadMemory() {
+  const memory = [];
 
-  const data = await openaiRes.json();
+  // Load full original files
+  const part1 = JSON.parse(fs.readFileSync(path.resolve('lib/iknow-conversations-part1.json'), 'utf8'));
+  const part2 = JSON.parse(fs.readFileSync(path.resolve('lib/iknow-conversations-part2.json'), 'utf8'));
+  memory.push(...part1, ...part2);
 
-  if (!openaiRes.ok) {
-    throw new Error(data.error?.message || 'OpenAI API error');
+  // Load fragments if they exist
+  const fragmentsDir = path.resolve('lib/memory-fragments');
+  if (fs.existsSync(fragmentsDir)) {
+    const files = fs.readdirSync(fragmentsDir).filter(f => f.endsWith('.json'));
+    for (const file of files) {
+      const fragment = JSON.parse(fs.readFileSync(path.join(fragmentsDir, file), 'utf8'));
+      memory.push(...fragment);
+    }
   }
 
-  return data.choices?.[0]?.message?.content;
+  return memory;
 }
