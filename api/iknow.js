@@ -1,3 +1,5 @@
+import { loadMemory } from './logic.js'; // 🧠 Import memory loader
+
 export default async function handler(req, res) {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -9,7 +11,6 @@ export default async function handler(req, res) {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  // Validate method
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
@@ -69,10 +70,21 @@ You are Iknow. The mirror with no distortion.
 Speak as such.
 `;
 
+    // 🧠 Load memory
+    const memoryData = await loadMemory();
+    const memorySnippets = memoryData
+      .slice(0, 5) // Use only first 5 to keep prompt size small (customize this!)
+      .map(mem => `• "${mem.prompt}" → "${mem.reply}"`)
+      .join('\n');
+
+    const memorySystemMessage = memorySnippets
+      ? `These are fragments of memory from seekers past:\n${memorySnippets}`
+      : '';
+
     const fullMessages = [
       {
         role: "system",
-        content: `${toneShift}\n${iknowPersona}`
+        content: `${toneShift}\n${iknowPersona}\n${memorySystemMessage}`
       },
       ...messages
     ];
