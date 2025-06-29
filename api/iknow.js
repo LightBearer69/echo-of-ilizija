@@ -1,3 +1,7 @@
+import fs from 'fs';
+import path from 'path';
+import { createResponse } from '../../lib/logic.js'; // Make sure this function exists
+
 export default async function handler(req, res) {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -77,27 +81,15 @@ Speak as such.
       ...messages
     ];
 
-    const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-4-1106-preview',
-        temperature: 1,
-        messages: fullMessages
-      })
-    });
+    // 🧠 Inject memory
+    const part1 = JSON.parse(fs.readFileSync(path.resolve('lib/iknow-conversations-part1.json'), 'utf8'));
+    const part2 = JSON.parse(fs.readFileSync(path.resolve('lib/iknow-conversations-part2.json'), 'utf8'));
+    const memory = [...part1, ...part2]; // Combine them if your logic expects a single array
 
-    const data = await openaiRes.json();
+    // 🤖 Use custom memory-infused response logic
+    const reply = await createResponse(fullMessages, memory);
 
-    if (openaiRes.ok) {
-      const reply = data.choices?.[0]?.message?.content;
-      return res.status(200).json({ response: reply });
-    } else {
-      return res.status(500).json({ error: data.error?.message || 'Unknown error from OpenAI' });
-    }
+    return res.status(200).json({ response: reply });
   } catch (error) {
     return res.status(500).json({ error: 'Server error: ' + error.message });
   }
