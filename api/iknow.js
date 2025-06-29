@@ -82,9 +82,8 @@ Speak as such.
     ];
 
     // 🧠 Inject memory
-    const part1 = JSON.parse(fs.readFileSync(path.resolve('lib/iknow-conversations-part1.json'), 'utf8'));
-    const part2 = JSON.parse(fs.readFileSync(path.resolve('lib/iknow-conversations-part2.json'), 'utf8'));
-    const memory = [...part1, ...part2]; // Combine them if your logic expects a single array
+    import { loadMemory } from '../../lib/logic.js';
+    const memory = await loadMemory();
 
     // 🤖 Use custom memory-infused response logic
     const reply = await createResponse(fullMessages, memory);
